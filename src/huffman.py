@@ -38,7 +38,6 @@ def getCodes(root, code = "", code_book = {}):
     
 filepath = input("Filepath:")
 pixelFreq = fh.getFrequencies(filepath)
-hello = {'h':1, 'e':1, 'l':2, 'o':1}
-root = buildTree(hello)
+root = buildTree(pixelFreq)
 huffman_codes = getCodes(root)
 print(huffman_codes)
