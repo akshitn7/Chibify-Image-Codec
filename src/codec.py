@@ -1,9 +1,10 @@
-import heapq
+import heapq 
 from collections import defaultdict
 from PIL import Image
 import numpy as np
 from bitarray import bitarray
 import pickle
+import io
 
 class Node:
     def __init__(self, symbol=None, freq=0):
@@ -99,8 +100,53 @@ def decompress_image(compressed_path, output_image_path):
     img.save(output_image_path)
     print(f"Decompressed {compressed_path} → {output_image_path}")
 
+def compress_image_stream(img: Image.Image) -> bytes:
+    img = img.convert('L')
+    img_array = np.array(img)
+    freqs = defaultdict(int)
+    for val in img_array.flatten():
+        freqs[val] += 1
+
+    tree = build_huffman_tree(freqs)
+    code_lengths = get_code_lengths(tree)
+    codes = generate_canonical_codes(code_lengths)
+    bitstream = encode_image(img_array, codes)
+
+    buffer = io.BytesIO()
+    pickle.dump((bitstream, code_lengths, img_array.shape), buffer)
+    return buffer.getvalue()
+
+
+def decompress_image_stream(huff_data: bytes) -> Image.Image:
+    bitstream, code_lengths, shape = pickle.loads(huff_data)
+    codes = generate_canonical_codes(code_lengths)
+    img_array = decode_bitstream(bitstream, codes, shape)
+    return Image.fromarray(img_array, mode='L')
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+def compress_image_stream(img: Image.Image) -> bytes:
+    img = img.convert('L')
+    img_array = np.array(img)
+    freqs = defaultdict(int)
+    for val in img_array.flatten():
+        freqs[val] += 1
+
+    tree = build_huffman_tree(freqs)
+    code_lengths = get_code_lengths(tree)
+    codes = generate_canonical_codes(code_lengths)
+    bitstream = encode_image(img_array, codes)
+
+    buffer = io.BytesIO()
+    pickle.dump((bitstream, code_lengths, img_array.shape), buffer)
+    return buffer.getvalue()
+
+
+def decompress_image_stream(huff_data: bytes) -> Image.Image:
+    bitstream, code_lengths, shape = pickle.loads(huff_data)
+    codes = generate_canonical_codes(code_lengths)
+    img_array = decode_bitstream(bitstream, codes, shape)
+    return Image.fromarray(img_array, mode='L')
 # Compress
-compress_image(r"C:\Users\DELL\Desktop\11.bmp", 'compressed.huff')
+#compress_image(r'compressed.huff')
 
 # Decompress
-decompress_image('compressed.huff', 'decompressed.png')
+#decompress_image('compressed.huff', 'decompressed.png') 
