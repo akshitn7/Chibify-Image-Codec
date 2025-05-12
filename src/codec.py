@@ -1,4 +1,4 @@
-import heapq 
+import heapq
 from collections import defaultdict
 from PIL import Image
 import numpy as np
@@ -66,20 +66,13 @@ def decode_bitstream(bitstream, codes, shape):
             buffer = ''
     return np.array(decoded, dtype=np.uint8).reshape(shape)
 
-def save_compressed(filepath, bitstream, code_lengths, shape):
-    with open(filepath, 'wb') as f:
-        pickle.dump((bitstream, code_lengths, shape), f)
-
-def load_compressed(filepath):
-    with open(filepath, 'rb') as f:
-        return pickle.load(f)
 
 # =======================
 # Main Compression Logic
 # =======================
 
-def compress_image(image_path, output_path):
-    img = Image.open(image_path).convert('L')
+def compress_image(image):
+    img = Image.open(image).convert('L')
     img_array = np.array(img)
     freqs = defaultdict(int)
     for val in img_array.flatten():
@@ -89,64 +82,13 @@ def compress_image(image_path, output_path):
     code_lengths = get_code_lengths(tree)
     codes = generate_canonical_codes(code_lengths)
     bitstream = encode_image(img_array, codes)
-    save_compressed(output_path, bitstream, code_lengths, img_array.shape)
-    print(f"Compressed {image_path} → {output_path}")
+    compressed = io.BytesIO()
+    pickle.dump((bitstream, code_lengths, img_array.shape), compressed)
+    return compressed.getvalue()
 
-def decompress_image(compressed_path, output_image_path):
-    bitstream, code_lengths, shape = load_compressed(compressed_path)
+def decompress_image(compressed):
+    bitstream, code_lengths, shape = pickle.load(compressed)
     codes = generate_canonical_codes(code_lengths)
     img_array = decode_bitstream(bitstream, codes, shape)
     img = Image.fromarray(img_array, mode='L')
-    img.save(output_image_path)
-    print(f"Decompressed {compressed_path} → {output_image_path}")
-
-def compress_image_stream(img: Image.Image) -> bytes:
-    img = img.convert('L')
-    img_array = np.array(img)
-    freqs = defaultdict(int)
-    for val in img_array.flatten():
-        freqs[val] += 1
-
-    tree = build_huffman_tree(freqs)
-    code_lengths = get_code_lengths(tree)
-    codes = generate_canonical_codes(code_lengths)
-    bitstream = encode_image(img_array, codes)
-
-    buffer = io.BytesIO()
-    pickle.dump((bitstream, code_lengths, img_array.shape), buffer)
-    return buffer.getvalue()
-
-
-def decompress_image_stream(huff_data: bytes) -> Image.Image:
-    bitstream, code_lengths, shape = pickle.loads(huff_data)
-    codes = generate_canonical_codes(code_lengths)
-    img_array = decode_bitstream(bitstream, codes, shape)
-    return Image.fromarray(img_array, mode='L')
-#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-def compress_image_stream(img: Image.Image) -> bytes:
-    img = img.convert('L')
-    img_array = np.array(img)
-    freqs = defaultdict(int)
-    for val in img_array.flatten():
-        freqs[val] += 1
-
-    tree = build_huffman_tree(freqs)
-    code_lengths = get_code_lengths(tree)
-    codes = generate_canonical_codes(code_lengths)
-    bitstream = encode_image(img_array, codes)
-
-    buffer = io.BytesIO()
-    pickle.dump((bitstream, code_lengths, img_array.shape), buffer)
-    return buffer.getvalue()
-
-
-def decompress_image_stream(huff_data: bytes) -> Image.Image:
-    bitstream, code_lengths, shape = pickle.loads(huff_data)
-    codes = generate_canonical_codes(code_lengths)
-    img_array = decode_bitstream(bitstream, codes, shape)
-    return Image.fromarray(img_array, mode='L')
-# Compress
-#compress_image(r'compressed.huff')
-
-# Decompress
-#decompress_image('compressed.huff', 'decompressed.png') 
+    return img
