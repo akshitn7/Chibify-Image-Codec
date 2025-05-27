@@ -1,3 +1,2 @@
 bitarray
-hashlib
 pycryptodome
