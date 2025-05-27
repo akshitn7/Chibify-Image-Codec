@@ -1,1 +1,5 @@
+streamlit
+Pillow
+numpy
 bitarray
+pycryptodome

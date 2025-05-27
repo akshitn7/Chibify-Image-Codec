@@ -6,20 +6,20 @@ st.set_page_config(page_title="Image Compression", layout="centered")
 st.title("🐥 Chibify 🐥")
 
 tab1, tab2 = st.tabs(["🐣 Compress Image", "🐔 Decompress File"])
-
+passphrase ="chibify"
 # ========== Compress ==========
 with tab1:
     img_file = st.file_uploader("Upload Image", type="bmp", accept_multiple_files=False)
     if img_file and st.button("Compress"):
         compressed = cd.compress_image(img_file)
-        encrypted_data=cd.encrypt(compressed)
+        encrypted_data=cd.encrypt(compressed,passphrase)
         st.success("File Compressed")
         st.download_button(label="Download your compressed file", data=encrypted_data, file_name= (img_file.name.split(".")[0] + ".chibi"), mime="application/octet-stream")
         
 with tab2:
     compressed = st.file_uploader("Upload Image", type="chibi", accept_multiple_files=False)
     if compressed and st.button("Decompress"):
-        decrypted_data=cd.decrypt(compressed)
+        decrypted_data=cd.decrypt(compressed,passphrase)
         decompressed = cd.decompress_image(decrypted_data)
         file = io.BytesIO()
         decompressed.save(file, format='BMP')
