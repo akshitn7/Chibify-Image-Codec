@@ -61,7 +61,7 @@ def decode_bitstream(bitstream, codes, shape):
     rev_map = {v: k for k, v in codes.items()}
     decoded = []
     buffer = ''
-    for bit in bitstream.to01():  # convert to '010101...' string
+    for bit in bitstream.to01(): 
         buffer += bit
         if buffer in rev_map:
             decoded.append(rev_map[buffer])
