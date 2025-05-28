@@ -5,8 +5,6 @@ import numpy as np
 from bitarray import bitarray
 import pickle
 import io
-from hashlib import sha256
-from Crypto.Cipher import AES
 
 class Node:
     def __init__(self, symbol=None, freq=0):
@@ -94,23 +92,3 @@ def decompress_image(compressed):
     img_array = decode_bitstream(bitstream, codes, shape)
     img = Image.fromarray(img_array, mode='L')
     return img
-
-passphrase="chibify"
-def get_key(passphrase: str) -> bytes:
-    return sha256(passphrase.encode('utf-8')).digest()
-
-def encrypt(data: bytes, passphrase: str) -> bytes:
-    key = get_key(passphrase)
-    cipher = AES.new(key, AES.MODE_GCM)
-    ciphertext, tag = cipher.encrypt_and_digest(data)
-    encrypted = cipher.nonce + tag + ciphertext
-    return encrypted
-
-def decrypt(encrypted: bytes, passphrase: str) -> bytes:
-    key = get_key(passphrase)
-    nonce = encrypted[:16]
-    tag = encrypted[16:32]
-    ciphertext = encrypted[32:]
-    cipher = AES.new(key, AES.MODE_GCM, nonce)
-    data = cipher.decrypt_and_verify(ciphertext, tag)
-    return data

@@ -12,15 +12,13 @@ with tab1:
     img_file = st.file_uploader("Upload Image", type="bmp", accept_multiple_files=False)
     if img_file and st.button("Compress"):
         compressed = cd.compress_image(img_file)
-        encrypted_data=cd.encrypt(compressed)
         st.success("File Compressed")
-        st.download_button(label="Download your compressed file", data=encrypted_data, file_name= (img_file.name.split(".")[0] + ".chibi"), mime="application/octet-stream")
+        st.download_button(label="Download your compressed file", data=compressed, file_name= (img_file.name.split(".")[0] + ".chibi"), mime="application/octet-stream")
         
 with tab2:
     compressed = st.file_uploader("Upload Image", type="chibi", accept_multiple_files=False)
     if compressed and st.button("Decompress"):
-        decrypted_data=cd.decrypt(compressed)
-        decompressed = cd.decompress_image(decrypted_data)
+        decompressed = cd.decompress_image(compressed)
         file = io.BytesIO()
         decompressed.save(file, format='BMP')
         file.seek(0)
