@@ -95,6 +95,7 @@ def decompress_image(compressed):
     img = Image.fromarray(img_array, mode='L')
     return img
 
+passphrase="chibify"
 def get_key(passphrase: str) -> bytes:
     return sha256(passphrase.encode('utf-8')).digest()
 
